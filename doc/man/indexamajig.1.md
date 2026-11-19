@@ -612,6 +612,11 @@ INDEXING OPTIONS
 **--taketwo-trace-tolerance=n**
 : The rotation matrix trace tolerance in degrees.  Default 3.
 
+**--smallcell-max-res=d**
+: Resolution limit, in Angstroms, for the powder rings calculated from the
+: unit cell by the **smallcell** indexing method.  Peaks at higher resolution
+: than this are not used for indexing.  Minimum 0.1, default 1.0.
+
 **--felix-domega=n**
 : Degree range of omega (moscaicity) to consider. Default 2.
 

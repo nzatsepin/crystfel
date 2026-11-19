@@ -99,7 +99,9 @@ void *smallcell_prepare(IndexingMethod indm, struct smallcell_options *opts,
     if ( dp == NULL ) return NULL;
 
     dp->sym = get_lattice_symmetry(cell);
-    dp->powderrings = powder_rings(cell, dp->sym, 1/1e-10, &dp->num_rings);
+    dp->powderrings = powder_rings(cell, dp->sym,
+                                   (opts != NULL) ? opts->max_res : 1/1e-10,
+                                   &dp->num_rings);
     dp->template = cell_new_from_cell(cell);
 
     /* Get reciprocal unit cell elements in order to create G* matrix
@@ -756,6 +758,13 @@ void smallcell_cleanup(void *mpriv)
 
 static void smallcell_show_help()
 {
+    printf("Parameters for 'smallcell' indexing:\n"
+"     --smallcell-max-res\n"
+"                           Resolution limit (in Angstroms) for the calculated\n"
+"                           powder rings.  Peaks at higher resolution than this\n"
+"                           are not used for indexing.  Minimum 0.1.\n"
+"                            Default: 1.0\n"
+);
 }
 
 
@@ -764,7 +773,7 @@ int smallcell_default_options(struct smallcell_options **opts_ptr)
     struct smallcell_options *opts;
     opts = cfmalloc(sizeof(struct smallcell_options));
     if ( opts == NULL ) return ENOMEM;
-    opts->dummy = 0;
+    opts->max_res = 1.0/1e-10;
     *opts_ptr = opts;
     return 0;
 }
@@ -786,6 +795,20 @@ static error_t smallcell_parse_arg(int key, char *arg, struct argp_state *state)
         smallcell_show_help();
         return EINVAL;
 
+        case 2:
+        {
+            double d;
+            if ( (sscanf(arg, "%lf", &d) != 1) || !isfinite(d)
+              || (d < 0.1) )
+            {
+                ERROR("Invalid value for --smallcell-max-res "
+                      "(must be at least 0.1 Angstroms)\n");
+                return EINVAL;
+            }
+            (*opts_ptr)->max_res = 1.0/(d*1e-10);  /* Angstroms to m^-1 */
+        }
+        break;
+
         default:
         return ARGP_ERR_UNKNOWN;
 
@@ -799,6 +822,8 @@ static struct argp_option smallcell_options[] = {
 
     {"help-smallcell", 1, NULL, OPTION_NO_USAGE,
      "Show options for 'smallcell' indexing", 99},
+
+    {"smallcell-max-res", 2, "d", OPTION_HIDDEN, NULL},
 
     {0}
 };

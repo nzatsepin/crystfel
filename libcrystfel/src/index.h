@@ -150,7 +150,8 @@ struct fromfile_options
 
 struct smallcell_options
 {
-       int dummy;  /* No options ...yet */
+       double max_res;  /* Resolution limit for calculated powder rings,
+                         * as 1/d in m^-1 */
 };
 
 
